@@ -22,14 +22,14 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/btcsuite/btcd/btcec"
-	"github.com/btcsuite/btcd/chaincfg"
-	"github.com/btcsuite/btcd/wire"
-	"github.com/btcsuite/btcutil"
-	"github.com/btcsuite/btcutil/hdkeychain"
-	"github.com/btcsuite/btcwallet/internal/zero"
-	"github.com/btcsuite/btcwallet/snacl"
-	"github.com/btcsuite/btcwallet/walletdb"
+	"github.com/conseweb/coinutil"
+	"github.com/conseweb/coinutil/hdkeychain"
+	"github.com/conseweb/stcd/btcec"
+	"github.com/conseweb/stcd/chaincfg"
+	"github.com/conseweb/stcd/wire"
+	"github.com/conseweb/stcwallet/internal/zero"
+	"github.com/conseweb/stcwallet/snacl"
+	"github.com/conseweb/stcwallet/walletdb"
 )
 
 const (
@@ -641,7 +641,7 @@ func (m *Manager) rowInterfaceToManaged(rowInterface interface{}) (ManagedAddres
 // caches the associated managed address.
 //
 // This function MUST be called with the manager lock held for writes.
-func (m *Manager) loadAndCacheAddress(address btcutil.Address) (ManagedAddress, error) {
+func (m *Manager) loadAndCacheAddress(address coinutil.Address) (ManagedAddress, error) {
 	// Attempt to load the raw address information from the database.
 	var rowInterface interface{}
 	err := m.namespace.View(func(tx walletdb.Tx) error {
@@ -677,13 +677,13 @@ func (m *Manager) loadAndCacheAddress(address btcutil.Address) (ManagedAddress, 
 // transactions such as the associated private key for pay-to-pubkey and
 // pay-to-pubkey-hash addresses and the script associated with
 // pay-to-script-hash addresses.
-func (m *Manager) Address(address btcutil.Address) (ManagedAddress, error) {
+func (m *Manager) Address(address coinutil.Address) (ManagedAddress, error) {
 	// ScriptAddress will only return a script hash if we're
 	// accessing an address that is either PKH or SH. In
 	// the event we're passed a PK address, convert the
 	// PK to PKH address so that we can access it from
 	// the addrs map and database.
-	if pka, ok := address.(*btcutil.AddressPubKey); ok {
+	if pka, ok := address.(*coinutil.AddressPubKey); ok {
 		address = pka.AddressPubKeyHash()
 	}
 
@@ -706,7 +706,7 @@ func (m *Manager) Address(address btcutil.Address) (ManagedAddress, error) {
 }
 
 // AddrAccount returns the account to which the given address belongs.
-func (m *Manager) AddrAccount(address btcutil.Address) (uint32, error) {
+func (m *Manager) AddrAccount(address coinutil.Address) (uint32, error) {
 	var account uint32
 	err := m.namespace.View(func(tx walletdb.Tx) error {
 		var err error
@@ -1002,7 +1002,7 @@ func (m *Manager) existsAddress(addressID []byte) (bool, error) {
 // watching-only, or not for the same network as the key trying to be imported.
 // It will also return an error if the address already exists.  Any other errors
 // returned are generally unexpected.
-func (m *Manager) ImportPrivateKey(wif *btcutil.WIF, bs *BlockStamp) (ManagedPubKeyAddress, error) {
+func (m *Manager) ImportPrivateKey(wif *coinutil.WIF, bs *BlockStamp) (ManagedPubKeyAddress, error) {
 	// Ensure the address is intended for network the address manager is
 	// associated with.
 	if !wif.IsForNet(m.chainParams) {
@@ -1022,7 +1022,7 @@ func (m *Manager) ImportPrivateKey(wif *btcutil.WIF, bs *BlockStamp) (ManagedPub
 
 	// Prevent duplicates.
 	serializedPubKey := wif.SerializePubKey()
-	pubKeyHash := btcutil.Hash160(serializedPubKey)
+	pubKeyHash := coinutil.Hash160(serializedPubKey)
 	alreadyExists, err := m.existsAddress(pubKeyHash)
 	if err != nil {
 		return nil, err
@@ -1126,7 +1126,7 @@ func (m *Manager) ImportScript(script []byte, bs *BlockStamp) (ManagedScriptAddr
 	}
 
 	// Prevent duplicates.
-	scriptHash := btcutil.Hash160(script)
+	scriptHash := coinutil.Hash160(script)
 	alreadyExists, err := m.existsAddress(scriptHash)
 	if err != nil {
 		return nil, err
@@ -1393,7 +1393,7 @@ func (m *Manager) fetchUsed(addressID []byte) (bool, error) {
 }
 
 // MarkUsed updates the used flag for the provided address.
-func (m *Manager) MarkUsed(address btcutil.Address) error {
+func (m *Manager) MarkUsed(address coinutil.Address) error {
 	addressID := address.ScriptAddress()
 	err := m.namespace.Update(func(tx walletdb.Tx) error {
 		return markAddressUsed(tx, addressID)
@@ -1883,7 +1883,7 @@ func (m *Manager) ForEachActiveAccountAddress(account uint32, fn func(maddr Mana
 
 // ForEachActiveAddress calls the given function with each active address
 // stored in the manager, breaking early on error.
-func (m *Manager) ForEachActiveAddress(fn func(addr btcutil.Address) error) error {
+func (m *Manager) ForEachActiveAddress(fn func(addr coinutil.Address) error) error {
 	m.mtx.Lock()
 	defer m.mtx.Unlock()
 

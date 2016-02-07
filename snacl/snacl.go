@@ -8,10 +8,10 @@ import (
 	"io"
 	"runtime/debug"
 
-	"github.com/btcsuite/btcwallet/internal/zero"
-	"github.com/btcsuite/fastsha256"
-	"github.com/btcsuite/golangcrypto/nacl/secretbox"
-	"github.com/btcsuite/golangcrypto/scrypt"
+	"github.com/conseweb/fastsha256"
+	"github.com/conseweb/golangcrypto/nacl/secretbox"
+	"github.com/conseweb/golangcrypto/scrypt"
+	"github.com/conseweb/stcwallet/internal/zero"
 )
 
 var (

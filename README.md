@@ -30,12 +30,12 @@ encryption will extend to transactions as well.
 btcwallet is not an SPV client and requires connecting to a local or
 remote btcd instance for asynchronous blockchain queries and
 notifications over websockets.  Full btcd installation instructions
-can be found [here](https://github.com/btcsuite/btcd).  An alternative
+can be found [here](https://github.com/conseweb/stcd).  An alternative
 SPV mode that is compatible with btcd and Bitcoin Core is planned for
 a future release.
 
 No release-ready graphical frontends currently exist, however the
-proof-of-concept [btcgui](https://github.com/btcsuite/btcgui) project
+proof-of-concept [btcgui](https://github.com/conseweb/btcgui) project
 shows some of the possibilities of btcwallet.  In the coming months a
 new stable RPC API is planned, at which point a high quality graphical
 frontend can be finished.
@@ -52,9 +52,9 @@ testing.
 
 Install the latest MSIs available here:
 
-https://github.com/btcsuite/btcd/releases
+https://github.com/conseweb/stcd/releases
 
-https://github.com/btcsuite/btcwallet/releases
+https://github.com/conseweb/stcwallet/releases
 
 ### Windows/Linux/BSD/POSIX - Build from source
 
@@ -65,8 +65,8 @@ https://github.com/btcsuite/btcwallet/releases
 - Run the following commands to obtain and install btcd, btcwallet
   and all dependencies:
 ```
-go get -u -v github.com/btcsuite/btcd/...
-go get -u -v github.com/btcsuite/btcwallet/...
+go get -u -v github.com/conseweb/stcd/...
+go get -u -v github.com/conseweb/stcwallet/...
 ```
 
 ## Getting Started
@@ -115,8 +115,8 @@ PS> $editor $env:LOCALAPPDATA\Btcwallet\btcwallet.conf
 
 Linux/BSD/POSIX (Installed from source):
 ```bash
-$ cp $GOPATH/src/github.com/btcsuite/btcd/sample-btcd.conf ~/.btcd/btcd.conf
-$ cp $GOPATH/src/github.com/btcsuite/btcwallet/sample-btcwallet.conf ~/.btcwallet/btcwallet.conf
+$ cp $GOPATH/src/github.com/conseweb/stcd/sample-btcd.conf ~/.btcd/btcd.conf
+$ cp $GOPATH/src/github.com/conseweb/stcwallet/sample-btcwallet.conf ~/.btcwallet/btcwallet.conf
 $ $EDITOR ~/.btcd/btcd.conf
 $ $EDITOR ~/.btcwallet/btcwallet.conf
 ```
@@ -135,7 +135,7 @@ JSON (un)marshaling these requests and notifications.
 
 ## Issue Tracker
 
-The [integrated github issue tracker](https://github.com/btcsuite/btcwallet/issues)
+The [integrated github issue tracker](https://github.com/conseweb/stcwallet/issues)
 is used for this project.
 
 ## GPG Verification Key

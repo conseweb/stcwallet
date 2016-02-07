@@ -29,16 +29,16 @@ import (
 	"sync"
 	"time"
 
-	"github.com/btcsuite/btcd/blockchain"
-	"github.com/btcsuite/btcd/btcjson"
-	"github.com/btcsuite/btcd/chaincfg"
-	"github.com/btcsuite/btcd/txscript"
-	"github.com/btcsuite/btcd/wire"
-	"github.com/btcsuite/btcutil"
-	"github.com/btcsuite/btcwallet/chain"
-	"github.com/btcsuite/btcwallet/waddrmgr"
-	"github.com/btcsuite/btcwallet/walletdb"
-	"github.com/btcsuite/btcwallet/wtxmgr"
+	"github.com/conseweb/coinutil"
+	"github.com/conseweb/stcd/blockchain"
+	"github.com/conseweb/stcd/btcjson"
+	"github.com/conseweb/stcd/chaincfg"
+	"github.com/conseweb/stcd/txscript"
+	"github.com/conseweb/stcd/wire"
+	"github.com/conseweb/stcwallet/chain"
+	"github.com/conseweb/stcwallet/waddrmgr"
+	"github.com/conseweb/stcwallet/walletdb"
+	"github.com/conseweb/stcwallet/wtxmgr"
 )
 
 const (
@@ -71,7 +71,7 @@ type Wallet struct {
 	chainSvrSyncMtx sync.Mutex
 
 	lockedOutpoints map[wire.OutPoint]struct{}
-	FeeIncrement    btcutil.Amount
+	FeeIncrement    coinutil.Amount
 	DisallowFree    bool
 
 	// Channels for rescan processing.  Requests are added and merged with
@@ -100,8 +100,8 @@ type Wallet struct {
 	disconnectedBlocks chan wtxmgr.BlockMeta
 	relevantTxs        chan chain.RelevantTx
 	lockStateChanges   chan bool // true when locked
-	confirmedBalance   chan btcutil.Amount
-	unconfirmedBalance chan btcutil.Amount
+	confirmedBalance   chan coinutil.Amount
+	unconfirmedBalance chan coinutil.Amount
 	notificationMu     sync.Mutex
 
 	chainParams *chaincfg.Params
@@ -171,14 +171,14 @@ func (w *Wallet) ListenLockStatus() (<-chan bool, error) {
 // other wallet methods will block.
 //
 // If this is called twice, ErrDuplicateListen is returned.
-func (w *Wallet) ListenConfirmedBalance() (<-chan btcutil.Amount, error) {
+func (w *Wallet) ListenConfirmedBalance() (<-chan coinutil.Amount, error) {
 	defer w.notificationMu.Unlock()
 	w.notificationMu.Lock()
 
 	if w.confirmedBalance != nil {
 		return nil, ErrDuplicateListen
 	}
-	w.confirmedBalance = make(chan btcutil.Amount)
+	w.confirmedBalance = make(chan coinutil.Amount)
 	return w.confirmedBalance, nil
 }
 
@@ -187,14 +187,14 @@ func (w *Wallet) ListenConfirmedBalance() (<-chan btcutil.Amount, error) {
 // read, or other wallet methods will block.
 //
 // If this is called twice, ErrDuplicateListen is returned.
-func (w *Wallet) ListenUnconfirmedBalance() (<-chan btcutil.Amount, error) {
+func (w *Wallet) ListenUnconfirmedBalance() (<-chan coinutil.Amount, error) {
 	defer w.notificationMu.Unlock()
 	w.notificationMu.Lock()
 
 	if w.unconfirmedBalance != nil {
 		return nil, ErrDuplicateListen
 	}
-	w.unconfirmedBalance = make(chan btcutil.Amount)
+	w.unconfirmedBalance = make(chan coinutil.Amount)
 	return w.unconfirmedBalance, nil
 }
 
@@ -238,7 +238,7 @@ func (w *Wallet) notifyLockStateChange(locked bool) {
 	w.notificationMu.Unlock()
 }
 
-func (w *Wallet) notifyConfirmedBalance(bal btcutil.Amount) {
+func (w *Wallet) notifyConfirmedBalance(bal coinutil.Amount) {
 	w.notificationMu.Lock()
 	if w.confirmedBalance != nil {
 		w.confirmedBalance <- bal
@@ -246,7 +246,7 @@ func (w *Wallet) notifyConfirmedBalance(bal btcutil.Amount) {
 	w.notificationMu.Unlock()
 }
 
-func (w *Wallet) notifyUnconfirmedBalance(bal btcutil.Amount) {
+func (w *Wallet) notifyUnconfirmedBalance(bal coinutil.Amount) {
 	w.notificationMu.Lock()
 	if w.unconfirmedBalance != nil {
 		w.unconfirmedBalance <- bal
@@ -352,7 +352,7 @@ func (w *Wallet) ChainSynced() bool {
 // SetChainSynced marks whether the wallet is connected to and currently in sync
 // with the latest block notified by the chain server.
 //
-// NOTE: Due to an API limitation with btcrpcclient, this may return true after
+// NOTE: Due to an API limitation with stcrpcclient, this may return true after
 // the client disconnected (and is attempting a reconnect).  This will be unknown
 // until the reconnect notification is received, at which point the wallet can be
 // marked out of sync again until after the next rescan completes.
@@ -365,9 +365,9 @@ func (w *Wallet) SetChainSynced(synced bool) {
 // activeData returns the currently-active receiving addresses and all unspent
 // outputs.  This is primarely intended to provide the parameters for a
 // rescan request.
-func (w *Wallet) activeData() ([]btcutil.Address, []wtxmgr.Credit, error) {
-	var addrs []btcutil.Address
-	err := w.Manager.ForEachActiveAddress(func(addr btcutil.Address) error {
+func (w *Wallet) activeData() ([]coinutil.Address, []wtxmgr.Credit, error) {
+	var addrs []coinutil.Address
+	err := w.Manager.ForEachActiveAddress(func(addr coinutil.Address) error {
 		addrs = append(addrs, addr)
 		return nil
 	})
@@ -386,9 +386,9 @@ func (w *Wallet) syncWithChain() error {
 	// Request notifications for connected and disconnected blocks.
 	//
 	// TODO(jrick): Either request this notification only once, or when
-	// btcrpcclient is modified to allow some notification request to not
+	// stcrpcclient is modified to allow some notification request to not
 	// automatically resent on reconnect, include the notifyblocks request
-	// as well.  I am leaning towards allowing off all btcrpcclient
+	// as well.  I am leaning towards allowing off all stcrpcclient
 	// notification re-registrations, in which case the code here should be
 	// left as is.
 	err := w.chainSvr.NotifyBlocks()
@@ -449,7 +449,7 @@ func (w *Wallet) syncWithChain() error {
 type (
 	createTxRequest struct {
 		account uint32
-		pairs   map[string]btcutil.Amount
+		pairs   map[string]coinutil.Amount
 		minconf int32
 		resp    chan createTxResponse
 	}
@@ -491,7 +491,7 @@ out:
 // automatically included, if necessary.  All transaction creation through
 // this function is serialized to prevent the creation of many transactions
 // which spend the same outputs.
-func (w *Wallet) CreateSimpleTx(account uint32, pairs map[string]btcutil.Amount,
+func (w *Wallet) CreateSimpleTx(account uint32, pairs map[string]coinutil.Amount,
 	minconf int32) (*CreatedTx, error) {
 
 	req := createTxRequest{
@@ -698,15 +698,15 @@ func (w *Wallet) AccountUsed(account uint32) (bool, error) {
 // a UTXO must be in a block.  If confirmations is 1 or greater,
 // the balance will be calculated based on how many how many blocks
 // include a UTXO.
-func (w *Wallet) CalculateBalance(confirms int32) (btcutil.Amount, error) {
+func (w *Wallet) CalculateBalance(confirms int32) (coinutil.Amount, error) {
 	blk := w.Manager.SyncedTo()
 	return w.TxStore.Balance(confirms, blk.Height)
 }
 
 // CalculateAccountBalance sums the amounts of all unspent transaction
 // outputs to the given account of a wallet and returns the balance.
-func (w *Wallet) CalculateAccountBalance(account uint32, confirms int32) (btcutil.Amount, error) {
-	var bal btcutil.Amount
+func (w *Wallet) CalculateAccountBalance(account uint32, confirms int32) (coinutil.Amount, error) {
+	var bal coinutil.Amount
 
 	// Get current block.  The block height used for calculating
 	// the number of tx confirmations.
@@ -746,7 +746,7 @@ func (w *Wallet) CalculateAccountBalance(account uint32, confirms int32) (btcuti
 // from a wallet.  If the address has already been used (there is at least
 // one transaction spending to it in the blockchain or btcd mempool), the next
 // chained address is returned.
-func (w *Wallet) CurrentAddress(account uint32) (btcutil.Address, error) {
+func (w *Wallet) CurrentAddress(account uint32) (coinutil.Address, error) {
 	addr, err := w.Manager.LastExternalAddress(account)
 	if err != nil {
 		// If no address exists yet, create the first external address
@@ -842,13 +842,13 @@ func ListTransactions(details *wtxmgr.TxDetails, syncHeight int32, net *chaincfg
 	// Fee can only be determined if every input is a debit.
 	var feeF64 float64
 	if len(details.Debits) == len(details.MsgTx.TxIn) {
-		var debitTotal btcutil.Amount
+		var debitTotal coinutil.Amount
 		for _, deb := range details.Debits {
 			debitTotal += deb.Amount
 		}
-		var outputTotal btcutil.Amount
+		var outputTotal coinutil.Amount
 		for _, output := range details.MsgTx.TxOut {
-			outputTotal += btcutil.Amount(output.Value)
+			outputTotal += coinutil.Amount(output.Value)
 		}
 		// Note: The actual fee is debitTotal - outputTotal.  However,
 		// this RPC reports negative numbers for fees, so the inverse
@@ -881,7 +881,7 @@ outputs:
 			address = addrs[0].EncodeAddress()
 		}
 
-		amountF64 := btcutil.Amount(output.Value).ToBTC()
+		amountF64 := coinutil.Amount(output.Value).ToBTC()
 		result := btcjson.ListTransactionsResult{
 			// Fields left zeroed:
 			//   InvolvesWatchOnly
@@ -1014,7 +1014,7 @@ func (w *Wallet) ListAddressTransactions(pkHashes map[string]struct{}) (
 				if err != nil || len(addrs) != 1 {
 					continue
 				}
-				apkh, ok := addrs[0].(*btcutil.AddressPubKeyHash)
+				apkh, ok := addrs[0].(*coinutil.AddressPubKeyHash)
 				if !ok {
 					continue
 				}
@@ -1246,7 +1246,7 @@ func (w *Wallet) DumpPrivKeys() ([]string, error) {
 	var privkeys []string
 	// Iterate over each active address, appending the private key to
 	// privkeys.
-	err := w.Manager.ForEachActiveAddress(func(addr btcutil.Address) error {
+	err := w.Manager.ForEachActiveAddress(func(addr coinutil.Address) error {
 		ma, err := w.Manager.Address(addr)
 		if err != nil {
 			return err
@@ -1273,7 +1273,7 @@ func (w *Wallet) DumpPrivKeys() ([]string, error) {
 
 // DumpWIFPrivateKey returns the WIF encoded private key for a
 // single wallet address.
-func (w *Wallet) DumpWIFPrivateKey(addr btcutil.Address) (string, error) {
+func (w *Wallet) DumpWIFPrivateKey(addr coinutil.Address) (string, error) {
 	// Get private key from wallet if it exists.
 	address, err := w.Manager.Address(addr)
 	if err != nil {
@@ -1294,7 +1294,7 @@ func (w *Wallet) DumpWIFPrivateKey(addr btcutil.Address) (string, error) {
 
 // ImportPrivateKey imports a private key to the wallet and writes the new
 // wallet to disk.
-func (w *Wallet) ImportPrivateKey(wif *btcutil.WIF, bs *waddrmgr.BlockStamp,
+func (w *Wallet) ImportPrivateKey(wif *coinutil.WIF, bs *waddrmgr.BlockStamp,
 	rescan bool) (string, error) {
 
 	// The starting block for the key is the genesis block unless otherwise
@@ -1316,7 +1316,7 @@ func (w *Wallet) ImportPrivateKey(wif *btcutil.WIF, bs *waddrmgr.BlockStamp,
 	// imported address.
 	if rescan {
 		job := &RescanJob{
-			Addrs:      []btcutil.Address{addr.Address()},
+			Addrs:      []coinutil.Address{addr.Address()},
 			OutPoints:  nil,
 			BlockStamp: *bs,
 		}
@@ -1471,7 +1471,7 @@ func (w *Wallet) ResendUnminedTxs() {
 // addresses in a wallet.
 func (w *Wallet) SortedActivePaymentAddresses() ([]string, error) {
 	var addrStrs []string
-	err := w.Manager.ForEachActiveAddress(func(addr btcutil.Address) error {
+	err := w.Manager.ForEachActiveAddress(func(addr coinutil.Address) error {
 		addrStrs = append(addrStrs, addr.EncodeAddress())
 		return nil
 	})
@@ -1484,7 +1484,7 @@ func (w *Wallet) SortedActivePaymentAddresses() ([]string, error) {
 }
 
 // NewAddress returns the next external chained address for a wallet.
-func (w *Wallet) NewAddress(account uint32) (btcutil.Address, error) {
+func (w *Wallet) NewAddress(account uint32) (coinutil.Address, error) {
 	// Get next address from wallet.
 	addrs, err := w.Manager.NextExternalAddresses(account, 1)
 	if err != nil {
@@ -1492,7 +1492,7 @@ func (w *Wallet) NewAddress(account uint32) (btcutil.Address, error) {
 	}
 
 	// Request updates from btcd for new transactions sent to this address.
-	utilAddrs := make([]btcutil.Address, len(addrs))
+	utilAddrs := make([]coinutil.Address, len(addrs))
 	for i, addr := range addrs {
 		utilAddrs[i] = addr.Address()
 	}
@@ -1504,7 +1504,7 @@ func (w *Wallet) NewAddress(account uint32) (btcutil.Address, error) {
 }
 
 // NewChangeAddress returns a new change address for a wallet.
-func (w *Wallet) NewChangeAddress(account uint32) (btcutil.Address, error) {
+func (w *Wallet) NewChangeAddress(account uint32) (coinutil.Address, error) {
 	// Get next chained change address from wallet for account.
 	addrs, err := w.Manager.NextInternalAddresses(account, 1)
 	if err != nil {
@@ -1512,7 +1512,7 @@ func (w *Wallet) NewChangeAddress(account uint32) (btcutil.Address, error) {
 	}
 
 	// Request updates from btcd for new transactions sent to this address.
-	utilAddrs := make([]btcutil.Address, len(addrs))
+	utilAddrs := make([]coinutil.Address, len(addrs))
 	for i, addr := range addrs {
 		utilAddrs[i] = addr.Address()
 	}
@@ -1545,11 +1545,11 @@ func confirms(txHeight, curHeight int32) int32 {
 // TotalReceivedForAccount iterates through a wallet's transaction history,
 // returning the total amount of bitcoins received for a single wallet
 // account.
-func (w *Wallet) TotalReceivedForAccount(account uint32, minConf int32) (btcutil.Amount, int32, error) {
+func (w *Wallet) TotalReceivedForAccount(account uint32, minConf int32) (coinutil.Amount, int32, error) {
 	syncBlock := w.Manager.SyncedTo()
 
 	var (
-		amount     btcutil.Amount
+		amount     coinutil.Amount
 		lastConf   int32 // Confs of the last matching transaction.
 		stopHeight int32
 	)
@@ -1585,12 +1585,12 @@ func (w *Wallet) TotalReceivedForAccount(account uint32, minConf int32) (btcutil
 // TotalReceivedForAddr iterates through a wallet's transaction history,
 // returning the total amount of bitcoins received for a single wallet
 // address.
-func (w *Wallet) TotalReceivedForAddr(addr btcutil.Address, minConf int32) (btcutil.Amount, error) {
+func (w *Wallet) TotalReceivedForAddr(addr coinutil.Address, minConf int32) (coinutil.Amount, error) {
 	syncBlock := w.Manager.SyncedTo()
 
 	var (
 		addrStr    = addr.EncodeAddress()
-		amount     btcutil.Amount
+		amount     coinutil.Amount
 		stopHeight int32
 	)
 
@@ -1626,7 +1626,7 @@ func (w *Wallet) TotalReceivedForAddr(addr btcutil.Address, minConf int32) (btcu
 
 // SendPairs creates and sends payment transactions. It returns the transaction
 // hash upon success
-func (w *Wallet) SendPairs(amounts map[string]btcutil.Amount, account uint32,
+func (w *Wallet) SendPairs(amounts map[string]coinutil.Amount, account uint32,
 	minconf int32) (*wire.ShaHash, error) {
 
 	// Create transaction, replying with an error if the creation

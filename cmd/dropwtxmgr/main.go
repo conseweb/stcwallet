@@ -20,15 +20,15 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/btcsuite/btcutil"
-	"github.com/btcsuite/btcwallet/walletdb"
-	_ "github.com/btcsuite/btcwallet/walletdb/bdb"
-	"github.com/btcsuite/go-flags"
+	"github.com/conseweb/coinutil"
+	"github.com/conseweb/go-flags"
+	"github.com/conseweb/stcwallet/walletdb"
+	_ "github.com/conseweb/stcwallet/walletdb/bdb"
 )
 
 const defaultNet = "mainnet"
 
-var datadir = btcutil.AppDataDir("btcwallet", false)
+var datadir = coinutil.AppDataDir("btcwallet", false)
 
 // Flags.
 var opts = struct {

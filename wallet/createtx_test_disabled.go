@@ -12,10 +12,10 @@ package wallet
 import (
 	"testing"
 
-	"github.com/btcsuite/btcd/txscript"
-	"github.com/btcsuite/btcd/wire"
-	"github.com/btcsuite/btcutil"
-	"github.com/btcsuite/btcwallet/tx"
+	"github.com/conseweb/coinutil"
+	"github.com/conseweb/stcd/txscript"
+	"github.com/conseweb/stcd/wire"
+	"github.com/conseweb/stcwallet/tx"
 )
 
 func init() {
@@ -37,7 +37,7 @@ var allowFreeTests = []allowFreeTest{
 		name: "priority < 57,600,000",
 		inputs: []*tx.Utxo{
 			{
-				Amt:    btcutil.SatoshiPerBitcoin,
+				Amt:    coinutil.SatoshiPerBitcoin,
 				Height: 0,
 			},
 		},
@@ -49,7 +49,7 @@ var allowFreeTests = []allowFreeTest{
 		name: "priority == 57,600,000",
 		inputs: []*tx.Utxo{
 			{
-				Amt:    btcutil.SatoshiPerBitcoin,
+				Amt:    coinutil.SatoshiPerBitcoin,
 				Height: 0,
 			},
 		},
@@ -61,7 +61,7 @@ var allowFreeTests = []allowFreeTest{
 		name: "priority > 57,600,000",
 		inputs: []*tx.Utxo{
 			{
-				Amt:    btcutil.SatoshiPerBitcoin,
+				Amt:    coinutil.SatoshiPerBitcoin,
 				Height: 0,
 			},
 		},

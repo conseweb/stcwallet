@@ -24,19 +24,19 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/btcsuite/btcutil"
-	"github.com/btcsuite/btcwallet/internal/cfgutil"
-	"github.com/btcsuite/btcwallet/internal/legacy/keystore"
-	"github.com/btcsuite/btcwallet/netparams"
-	flags "github.com/btcsuite/go-flags"
+	"github.com/conseweb/coinutil"
+	flags "github.com/conseweb/go-flags"
+	"github.com/conseweb/stcwallet/internal/cfgutil"
+	"github.com/conseweb/stcwallet/internal/legacy/keystore"
+	"github.com/conseweb/stcwallet/netparams"
 )
 
 const (
-	defaultCAFilename       = "btcd.cert"
-	defaultConfigFilename   = "btcwallet.conf"
+	defaultCAFilename       = "stcd.cert"
+	defaultConfigFilename   = "stcwallet.conf"
 	defaultLogLevel         = "info"
 	defaultLogDirname       = "logs"
-	defaultLogFilename      = "btcwallet.log"
+	defaultLogFilename      = "stcwallet.log"
 	defaultDisallowFree     = false
 	defaultRPCMaxClients    = 10
 	defaultRPCMaxWebsockets = 25
@@ -56,8 +56,8 @@ const (
 )
 
 var (
-	btcdHomeDir        = btcutil.AppDataDir("btcd", false)
-	btcwalletHomeDir   = btcutil.AppDataDir("btcwallet", false)
+	btcdHomeDir        = coinutil.AppDataDir("stcd", false)
+	btcwalletHomeDir   = coinutil.AppDataDir("stcwallet", false)
 	btcdHomedirCAFile  = filepath.Join(btcdHomeDir, "rpc.cert")
 	defaultConfigFile  = filepath.Join(btcwalletHomeDir, defaultConfigFilename)
 	defaultDataDir     = btcwalletHomeDir

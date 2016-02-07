@@ -23,13 +23,13 @@ import (
 	"sort"
 	"time"
 
-	"github.com/btcsuite/btcd/blockchain"
-	"github.com/btcsuite/btcd/chaincfg"
-	"github.com/btcsuite/btcd/txscript"
-	"github.com/btcsuite/btcd/wire"
-	"github.com/btcsuite/btcutil"
-	"github.com/btcsuite/btcwallet/waddrmgr"
-	"github.com/btcsuite/btcwallet/wtxmgr"
+	"github.com/conseweb/coinutil"
+	"github.com/conseweb/stcd/blockchain"
+	"github.com/conseweb/stcd/chaincfg"
+	"github.com/conseweb/stcd/txscript"
+	"github.com/conseweb/stcd/wire"
+	"github.com/conseweb/stcwallet/waddrmgr"
+	"github.com/conseweb/stcwallet/wtxmgr"
 )
 
 const (
@@ -66,8 +66,8 @@ func estimateTxSize(numInputs, numOutputs int) int {
 	return txOverheadEstimate + txInEstimate*numInputs + txOutEstimate*numOutputs
 }
 
-func feeForSize(incr btcutil.Amount, sz int) btcutil.Amount {
-	return btcutil.Amount(1+sz/1000) * incr
+func feeForSize(incr coinutil.Amount, sz int) coinutil.Amount {
+	return coinutil.Amount(1+sz/1000) * incr
 }
 
 // InsufficientFundsError represents an error where there are not enough
@@ -75,7 +75,7 @@ func feeForSize(incr btcutil.Amount, sz int) btcutil.Amount {
 // This may be caused by not enough inputs for all of the desired total
 // transaction output amount, or due to
 type InsufficientFundsError struct {
-	in, out, fee btcutil.Amount
+	in, out, fee coinutil.Amount
 }
 
 // Error satisifies the builtin error interface.
@@ -110,7 +110,7 @@ const defaultFeeIncrement = 1e3
 // output (if one was added).
 type CreatedTx struct {
 	MsgTx       *wire.MsgTx
-	ChangeAddr  btcutil.Address
+	ChangeAddr  coinutil.Address
 	ChangeIndex int // negative if no change
 }
 
@@ -129,7 +129,7 @@ func (u ByAmount) Swap(i, j int)      { u[i], u[j] = u[j], u[i] }
 // to addr or as a fee for the miner are sent to a newly generated
 // address. InsufficientFundsError is returned if there are not enough
 // eligible unspent outputs to create the transaction.
-func (w *Wallet) txToPairs(pairs map[string]btcutil.Amount, account uint32, minconf int32) (*CreatedTx, error) {
+func (w *Wallet) txToPairs(pairs map[string]coinutil.Amount, account uint32, minconf int32) (*CreatedTx, error) {
 
 	// Address manager must be unlocked to compose transaction.  Grab
 	// the unlock if possible (to prevent future unlocks), or return the
@@ -160,9 +160,9 @@ func (w *Wallet) txToPairs(pairs map[string]btcutil.Amount, account uint32, minc
 // the selected inputs and the given outputs, validating it (using
 // validateMsgTx) as well.
 func createTx(eligible []wtxmgr.Credit,
-	outputs map[string]btcutil.Amount, bs *waddrmgr.BlockStamp,
-	feeIncrement btcutil.Amount, mgr *waddrmgr.Manager, account uint32,
-	changeAddress func(account uint32) (btcutil.Address, error),
+	outputs map[string]coinutil.Amount, bs *waddrmgr.BlockStamp,
+	feeIncrement coinutil.Amount, mgr *waddrmgr.Manager, account uint32,
+	changeAddress func(account uint32) (coinutil.Address, error),
 	chainParams *chaincfg.Params, disallowFree bool) (*CreatedTx, error) {
 
 	msgtx := wire.NewMsgTx()
@@ -179,7 +179,7 @@ func createTx(eligible []wtxmgr.Credit,
 	// desired outputs.
 	var input wtxmgr.Credit
 	var inputs []wtxmgr.Credit
-	totalAdded := btcutil.Amount(0)
+	totalAdded := coinutil.Amount(0)
 	for totalAdded < minAmount {
 		if len(eligible) == 0 {
 			return nil, InsufficientFundsError{totalAdded, minAmount, 0}
@@ -210,7 +210,7 @@ func createTx(eligible []wtxmgr.Credit,
 		feeEst = minimumFee(feeIncrement, szEst, msgtx.TxOut, inputs, bs.Height, disallowFree)
 	}
 
-	var changeAddr btcutil.Address
+	var changeAddr coinutil.Address
 	// changeIdx is -1 unless there's a change output.
 	changeIdx := -1
 
@@ -276,7 +276,7 @@ func createTx(eligible []wtxmgr.Credit,
 
 // addChange adds a new output with the given amount and address, and
 // randomizes the index (and returns it) of the newly added output.
-func addChange(msgtx *wire.MsgTx, change btcutil.Amount, changeAddr btcutil.Address) (int, error) {
+func addChange(msgtx *wire.MsgTx, change coinutil.Amount, changeAddr coinutil.Address) (int, error) {
 	pkScript, err := txscript.PayToAddrScript(changeAddr)
 	if err != nil {
 		return 0, fmt.Errorf("cannot create txout script: %s", err)
@@ -293,14 +293,14 @@ func addChange(msgtx *wire.MsgTx, change btcutil.Amount, changeAddr btcutil.Addr
 
 // addOutputs adds the given address/amount pairs as outputs to msgtx,
 // returning their total amount.
-func addOutputs(msgtx *wire.MsgTx, pairs map[string]btcutil.Amount, chainParams *chaincfg.Params) (btcutil.Amount, error) {
-	var minAmount btcutil.Amount
+func addOutputs(msgtx *wire.MsgTx, pairs map[string]coinutil.Amount, chainParams *chaincfg.Params) (coinutil.Amount, error) {
+	var minAmount coinutil.Amount
 	for addrStr, amt := range pairs {
 		if amt <= 0 {
 			return minAmount, ErrNonPositiveAmount
 		}
 		minAmount += amt
-		addr, err := btcutil.DecodeAddress(addrStr, chainParams)
+		addr, err := coinutil.DecodeAddress(addrStr, chainParams)
 		if err != nil {
 			return minAmount, fmt.Errorf("cannot decode address: %s", err)
 		}
@@ -390,7 +390,7 @@ func signMsgTx(msgtx *wire.MsgTx, prevOutputs []wtxmgr.Credit, mgr *waddrmgr.Man
 		if len(addrs) != 1 {
 			continue
 		}
-		apkh, ok := addrs[0].(*btcutil.AddressPubKeyHash)
+		apkh, ok := addrs[0].(*coinutil.AddressPubKeyHash)
 		if !ok {
 			return ErrUnsupportedTransactionType
 		}
@@ -437,7 +437,7 @@ func validateMsgTx(msgtx *wire.MsgTx, prevOutputs []wtxmgr.Credit) error {
 // s less than 1 kilobyte and none of the outputs contain a value
 // less than 1 bitcent. Otherwise, the fee will be calculated using
 // incr, incrementing the fee for each kilobyte of transaction.
-func minimumFee(incr btcutil.Amount, txLen int, outputs []*wire.TxOut, prevOutputs []wtxmgr.Credit, height int32, disallowFree bool) btcutil.Amount {
+func minimumFee(incr coinutil.Amount, txLen int, outputs []*wire.TxOut, prevOutputs []wtxmgr.Credit, height int32, disallowFree bool) coinutil.Amount {
 	allowFree := false
 	if !disallowFree {
 		allowFree = allowNoFeeTx(height, prevOutputs, txLen)
@@ -450,15 +450,15 @@ func minimumFee(incr btcutil.Amount, txLen int, outputs []*wire.TxOut, prevOutpu
 
 	if fee < incr {
 		for _, txOut := range outputs {
-			if txOut.Value < btcutil.SatoshiPerBitcent {
+			if txOut.Value < coinutil.SatoshiPerBitcent {
 				return incr
 			}
 		}
 	}
 
 	// How can fee be smaller than 0 here?
-	if fee < 0 || fee > btcutil.MaxSatoshi {
-		fee = btcutil.MaxSatoshi
+	if fee < 0 || fee > coinutil.MaxSatoshi {
+		fee = coinutil.MaxSatoshi
 	}
 
 	return fee
@@ -470,7 +470,7 @@ func minimumFee(incr btcutil.Amount, txLen int, outputs []*wire.TxOut, prevOutpu
 func allowNoFeeTx(curHeight int32, txouts []wtxmgr.Credit, txSize int) bool {
 	const blocksPerDayEstimate = 144.0
 	const txSizeEstimate = 250.0
-	const threshold = btcutil.SatoshiPerBitcoin * blocksPerDayEstimate / txSizeEstimate
+	const threshold = coinutil.SatoshiPerBitcoin * blocksPerDayEstimate / txSizeEstimate
 
 	var weightedSum int64
 	for _, txout := range txouts {

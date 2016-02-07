@@ -20,12 +20,12 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/btcsuite/btclog"
-	"github.com/btcsuite/btcrpcclient"
-	"github.com/btcsuite/btcwallet/chain"
-	"github.com/btcsuite/btcwallet/wallet"
-	"github.com/btcsuite/btcwallet/wtxmgr"
-	"github.com/btcsuite/seelog"
+	"github.com/conseweb/btclog"
+	"github.com/conseweb/seelog"
+	"github.com/conseweb/stcrpcclient"
+	"github.com/conseweb/stcwallet/chain"
+	"github.com/conseweb/stcwallet/wallet"
+	"github.com/conseweb/stcwallet/wtxmgr"
 )
 
 const (
@@ -93,7 +93,7 @@ func useLogger(subsystemID string, logger btclog.Logger) {
 	case "CHNS":
 		chainLog = logger
 		chain.UseLogger(logger)
-		btcrpcclient.UseLogger(logger)
+		stcrpcclient.UseLogger(logger)
 	}
 }
 

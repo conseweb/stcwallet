@@ -21,19 +21,19 @@ import (
 	"sync"
 	"time"
 
-	"github.com/btcsuite/btcd/btcjson"
-	"github.com/btcsuite/btcd/chaincfg"
-	"github.com/btcsuite/btcd/wire"
-	"github.com/btcsuite/btcrpcclient"
-	"github.com/btcsuite/btcutil"
-	"github.com/btcsuite/btcwallet/waddrmgr"
-	"github.com/btcsuite/btcwallet/wtxmgr"
+	"github.com/conseweb/coinutil"
+	"github.com/conseweb/stcd/btcjson"
+	"github.com/conseweb/stcd/chaincfg"
+	"github.com/conseweb/stcd/wire"
+	"github.com/conseweb/stcrpcclient"
+	"github.com/conseweb/stcwallet/waddrmgr"
+	"github.com/conseweb/stcwallet/wtxmgr"
 )
 
 // Client represents a persistent client connection to a bitcoin RPC server
 // for information regarding the current best block chain.
 type Client struct {
-	*btcrpcclient.Client
+	*stcrpcclient.Client
 	chainParams *chaincfg.Params
 
 	enqueueNotification chan interface{}
@@ -60,7 +60,7 @@ func NewClient(chainParams *chaincfg.Params, connect, user, pass string, certs [
 		currentBlock:        make(chan *waddrmgr.BlockStamp),
 		quit:                make(chan struct{}),
 	}
-	ntfnCallbacks := btcrpcclient.NotificationHandlers{
+	ntfnCallbacks := stcrpcclient.NotificationHandlers{
 		OnClientConnected:   client.onClientConnect,
 		OnBlockConnected:    client.onBlockConnected,
 		OnBlockDisconnected: client.onBlockDisconnected,
@@ -69,7 +69,7 @@ func NewClient(chainParams *chaincfg.Params, connect, user, pass string, certs [
 		OnRescanFinished:    client.onRescanFinished,
 		OnRescanProgress:    client.onRescanProgress,
 	}
-	conf := btcrpcclient.ConnConfig{
+	conf := stcrpcclient.ConnConfig{
 		Host:                 connect,
 		Endpoint:             "ws",
 		User:                 user,
@@ -79,7 +79,7 @@ func NewClient(chainParams *chaincfg.Params, connect, user, pass string, certs [
 		DisableConnectOnNew:  true,
 		DisableTLS:           disableTLS,
 	}
-	c, err := btcrpcclient.New(&conf, &ntfnCallbacks)
+	c, err := stcrpcclient.New(&conf, &ntfnCallbacks)
 	if err != nil {
 		return nil, err
 	}
@@ -144,7 +144,7 @@ func (c *Client) WaitForShutdown() {
 
 // Notification types.  These are defined here and processed from from reading
 // a notificationChan to avoid handling these notifications directly in
-// btcrpcclient callbacks, which isn't very Go-like and doesn't allow
+// stcrpcclient callbacks, which isn't very Go-like and doesn't allow
 // blocking client calls.
 type (
 	// ClientConnected is a notification for when a client connection is
@@ -204,7 +204,7 @@ func (c *Client) BlockStamp() (*waddrmgr.BlockStamp, error) {
 
 // parseBlock parses a btcws definition of the block a tx is mined it to the
 // Block structure of the wtxmgr package, and the block index.  This is done
-// here since btcrpcclient doesn't parse this nicely for us.
+// here since stcrpcclient doesn't parse this nicely for us.
 func parseBlock(block *btcjson.BlockDetails) (*wtxmgr.BlockMeta, error) {
 	if block == nil {
 		return nil, nil
@@ -256,7 +256,7 @@ func (c *Client) onBlockDisconnected(hash *wire.ShaHash, height int32, time time
 	}
 }
 
-func (c *Client) onRecvTx(tx *btcutil.Tx, block *btcjson.BlockDetails) {
+func (c *Client) onRecvTx(tx *coinutil.Tx, block *btcjson.BlockDetails) {
 	blk, err := parseBlock(block)
 	if err != nil {
 		// Log and drop improper notification.
@@ -276,7 +276,7 @@ func (c *Client) onRecvTx(tx *btcutil.Tx, block *btcjson.BlockDetails) {
 	}
 }
 
-func (c *Client) onRedeemingTx(tx *btcutil.Tx, block *btcjson.BlockDetails) {
+func (c *Client) onRedeemingTx(tx *coinutil.Tx, block *btcjson.BlockDetails) {
 	// Handled exactly like recvtx notifications.
 	c.onRecvTx(tx, block)
 }
@@ -371,7 +371,7 @@ out:
 			// loop from blocking here forever, but this is much larger
 			// than it needs to be due to btcd processing websocket
 			// requests synchronously (see
-			// https://github.com/btcsuite/btcd/issues/504).  Decrease
+			// https://github.com/conseweb/stcd/issues/504).  Decrease
 			// this to something saner like 3s when the above issue is
 			// fixed.
 			type sessionResult struct {

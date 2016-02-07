@@ -16,7 +16,7 @@
 
 package netparams
 
-import "github.com/btcsuite/btcd/chaincfg"
+import "github.com/conseweb/stcd/chaincfg"
 
 // Params is used to group parameters for various networks such as the main
 // network and test networks.

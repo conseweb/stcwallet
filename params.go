@@ -16,6 +16,6 @@
 
 package main
 
-import "github.com/btcsuite/btcwallet/netparams"
+import "github.com/conseweb/stcwallet/netparams"
 
 var activeNet = &netparams.TestNet3Params

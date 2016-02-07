@@ -23,11 +23,11 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/btcsuite/btcd/btcec"
-	"github.com/btcsuite/btcd/chaincfg"
-	"github.com/btcsuite/btcd/txscript"
-	"github.com/btcsuite/btcd/wire"
-	"github.com/btcsuite/btcutil"
+	"github.com/conseweb/coinutil"
+	"github.com/conseweb/stcd/btcec"
+	"github.com/conseweb/stcd/chaincfg"
+	"github.com/conseweb/stcd/txscript"
+	"github.com/conseweb/stcd/wire"
 
 	"github.com/davecgh/go-spew/spew"
 )
@@ -590,7 +590,7 @@ func TestWatchingWalletExport(t *testing.T) {
 
 	// Test that ExtendActiveAddresses for the watching wallet match
 	// manually requested addresses of the original wallet.
-	var newAddrs []btcutil.Address
+	var newAddrs []coinutil.Address
 	for i := 0; i < 10; i++ {
 		addr, err := w.NextChainedAddress(createdAt)
 		if err != nil {
@@ -677,7 +677,7 @@ func TestWatchingWalletExport(t *testing.T) {
 		return
 	}
 	pk, _ := btcec.PrivKeyFromBytes(btcec.S256(), make([]byte, 32))
-	wif, err := btcutil.NewWIF(pk, tstNetParams, true)
+	wif, err := coinutil.NewWIF(pk, tstNetParams, true)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -716,7 +716,7 @@ func TestImportPrivateKey(t *testing.T) {
 	}
 
 	// import priv key
-	wif, err := btcutil.NewWIF((*btcec.PrivateKey)(pk), tstNetParams, false)
+	wif, err := coinutil.NewWIF((*btcec.PrivateKey)(pk), tstNetParams, false)
 	if err != nil {
 		t.Fatal(err)
 	}

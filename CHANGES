@@ -11,7 +11,7 @@ Changes in 0.7.0 (Mon Nov 23 2015)
   - Bug fixes:
     - Removed data races in the RPC server (#292) and waddrmgr package
       (#293)
-    - Corrected handling of btcutil.AddressPubKey addresses when querying
+    - Corrected handling of coinutil.AddressPubKey addresses when querying
       for a ManagedAddress from the address manager (#313)
     - Fixed signmessage and verifymessage algorithm to match the equivalent
       algorithms used by Core (#324)
@@ -30,7 +30,7 @@ Changes in 0.7.0 (Mon Nov 23 2015)
   - Miscellaneous:
     - Updated websocket notification handlers to latest API required by
       btcd (#294)
-    - Enabled the logging subsystem of the btcrpcclient package (#328)
+    - Enabled the logging subsystem of the stcrpcclient package (#328)
 
   - Contributors (alphabetical order):
     - Alex Yocom-Piatt
@@ -259,7 +259,7 @@ Changes in 0.5.0 (Tue Mar 03 2015)
         notification channels in the rpcServer struct, which are in turn
         marshalled and broadcast to each websocket client
     - Separate the RPC client code into the chain package:
-      - Uses btcrpcclient for a btcd websocket RPC client
+      - Uses stcrpcclient for a btcd websocket RPC client
       - Converts all notification callbacks to typed messages sent over channels
       - Uses an unbounded queue for waiting notifications
     - Import a new voting pool package (votingpool):

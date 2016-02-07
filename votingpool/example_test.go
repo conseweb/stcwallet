@@ -23,14 +23,14 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/btcsuite/btcd/chaincfg"
-	"github.com/btcsuite/btcd/txscript"
-	"github.com/btcsuite/btcutil"
-	"github.com/btcsuite/btcwallet/votingpool"
-	"github.com/btcsuite/btcwallet/waddrmgr"
-	"github.com/btcsuite/btcwallet/walletdb"
-	_ "github.com/btcsuite/btcwallet/walletdb/bdb"
-	"github.com/btcsuite/btcwallet/wtxmgr"
+	"github.com/conseweb/coinutil"
+	"github.com/conseweb/stcd/chaincfg"
+	"github.com/conseweb/stcd/txscript"
+	"github.com/conseweb/stcwallet/votingpool"
+	"github.com/conseweb/stcwallet/waddrmgr"
+	"github.com/conseweb/stcwallet/walletdb"
+	_ "github.com/conseweb/stcwallet/walletdb/bdb"
+	"github.com/conseweb/stcwallet/wtxmgr"
 )
 
 var (
@@ -192,7 +192,7 @@ func Example_startWithdrawal() {
 	}
 	defer mgr.Lock()
 
-	addr, _ := btcutil.DecodeAddress("1MirQ9bwyQcGVJPwKUgapu5ouK2E2Ey4gX", mgr.ChainParams())
+	addr, _ := coinutil.DecodeAddress("1MirQ9bwyQcGVJPwKUgapu5ouK2E2Ey4gX", mgr.ChainParams())
 	pkScript, _ := txscript.PayToAddrScript(addr)
 	requests := []votingpool.OutputRequest{
 		votingpool.OutputRequest{
@@ -220,7 +220,7 @@ func Example_startWithdrawal() {
 		return
 	}
 	lastSeriesID := seriesID
-	dustThreshold := btcutil.Amount(1e4)
+	dustThreshold := coinutil.Amount(1e4)
 	currentBlock := int32(19432)
 	roundID := uint32(0)
 	txstore, tearDownFunc, err := exampleCreateTxStore()

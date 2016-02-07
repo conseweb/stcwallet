@@ -22,14 +22,14 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/btcsuite/btcd/wire"
-	"github.com/btcsuite/btcutil"
-	"github.com/btcsuite/btcwallet/wtxmgr"
+	"github.com/conseweb/coinutil"
+	"github.com/conseweb/stcd/wire"
+	"github.com/conseweb/stcwallet/wtxmgr"
 )
 
 var (
 	// random small number of satoshis used as dustThreshold
-	dustThreshold btcutil.Amount = 1e4
+	dustThreshold coinutil.Amount = 1e4
 )
 
 func TestGetEligibleInputs(t *testing.T) {

@@ -17,8 +17,8 @@
 package wtxmgr
 
 import (
-	"github.com/btcsuite/btcd/wire"
-	"github.com/btcsuite/btcwallet/walletdb"
+	"github.com/conseweb/stcd/wire"
+	"github.com/conseweb/stcwallet/walletdb"
 )
 
 // insertMemPoolTx inserts the unmined transaction record.  It also marks

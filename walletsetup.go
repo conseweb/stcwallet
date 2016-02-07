@@ -25,17 +25,17 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/btcsuite/btcd/btcec"
-	"github.com/btcsuite/btcd/chaincfg"
-	"github.com/btcsuite/btcd/wire"
-	"github.com/btcsuite/btcutil"
-	"github.com/btcsuite/btcutil/hdkeychain"
-	"github.com/btcsuite/btcwallet/internal/legacy/keystore"
-	"github.com/btcsuite/btcwallet/waddrmgr"
-	"github.com/btcsuite/btcwallet/wallet"
-	"github.com/btcsuite/btcwallet/walletdb"
-	_ "github.com/btcsuite/btcwallet/walletdb/bdb"
-	"github.com/btcsuite/golangcrypto/ssh/terminal"
+	"github.com/conseweb/coinutil"
+	"github.com/conseweb/coinutil/hdkeychain"
+	"github.com/conseweb/golangcrypto/ssh/terminal"
+	"github.com/conseweb/stcd/btcec"
+	"github.com/conseweb/stcd/chaincfg"
+	"github.com/conseweb/stcd/wire"
+	"github.com/conseweb/stcwallet/internal/legacy/keystore"
+	"github.com/conseweb/stcwallet/waddrmgr"
+	"github.com/conseweb/stcwallet/wallet"
+	"github.com/conseweb/stcwallet/walletdb"
+	_ "github.com/conseweb/stcwallet/walletdb/bdb"
 )
 
 // Namespace keys
@@ -386,7 +386,7 @@ func convertLegacyKeystore(legacyKeyStore *keystore.Store, manager *waddrmgr.Man
 				continue
 			}
 
-			wif, err := btcutil.NewWIF((*btcec.PrivateKey)(privKey),
+			wif, err := coinutil.NewWIF((*btcec.PrivateKey)(privKey),
 				netParams, addr.Compressed())
 			if err != nil {
 				fmt.Printf("WARN: Failed to create wallet "+
